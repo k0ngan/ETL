@@ -1,0 +1,9 @@
+streamlit
+pandas
+pymongo
+openpyxl
+matplotlib
+seaborn
+ydata-profiling
+numpy
+scikit-learn
