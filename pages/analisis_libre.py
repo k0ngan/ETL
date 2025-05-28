@@ -1,29 +1,38 @@
 import streamlit as st
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+import plotly.express as px
 from utils import cargar_datos
 
-st.set_page_config(page_title="Análisis Exploratorio", layout="wide")
+st.set_page_config(page_title="EDA", layout="wide")
+st.title("📊 Análisis Exploratorio")
 
-st.title("Análisis Exploratorio de Datos")
-
-archivo = st.file_uploader("Sube tu dataset (CSV o Excel)")
+archivo = st.file_uploader("Sube tu archivo CSV o Excel", type=["csv", "xlsx"])
 
 if archivo:
     df = cargar_datos(archivo)
-    st.subheader("Vista preliminar")
+    
+    st.subheader("Vista previa")
     st.dataframe(df.head())
 
-    st.subheader("Estadísticos básicos")
-    st.write(df.describe(include="all").T)
+    st.subheader("Estadísticas básicas")
+    st.write(df.describe())
 
-    # Gráfica rápida
-    with st.expander("Histograma interactivo"):
-        col = st.selectbox("Selecciona variable numérica", df.select_dtypes("number").columns)
-        fig, ax = plt.subplots()
-        sns.histplot(df[col], kde=True, ax=ax)
-        st.pyplot(fig)
+    st.subheader("Promedio por columna numérica")
+    st.write(df.select_dtypes("number").mean())
 
-st.title("Análisis Libre de Ausentismo")
-st.write("Explora los datos de ausentismo de manera interactiva aquí.")
+    numeric_cols = df.select_dtypes("number").columns
+    cat_cols = df.select_dtypes(include=["object", "category"]).columns
+
+    # Histograma
+    st.subheader("Histograma")
+    col_hist = st.selectbox("Selecciona columna numérica", numeric_cols)
+    fig_hist = px.histogram(df, x=col_hist, nbins=30, title=f"Histograma de {col_hist}")
+    st.plotly_chart(fig_hist)
+    
+    # Dispersión
+    if len(numeric_cols) >= 2:
+        st.subheader("Dispersión")
+        x_col = st.selectbox("Eje X", numeric_cols, key="x")
+        y_col = st.selectbox("Eje Y", [col for col in numeric_cols if col != x_col], key="y")
+        fig_scatter = px.scatter(df, x=x_col, y=y_col, title=f"{y_col} vs {x_col}")
+        st.plotly_chart(fig_scatter)
